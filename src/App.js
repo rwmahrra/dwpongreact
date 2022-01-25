@@ -1,24 +1,85 @@
-import logo from './logo.svg';
 import './App.css';
 
+import React, {useState, Suspense} from 'react'
+import { Canvas } from "@react-three/fiber";
+import {OrbitControls} from "@react-three/drei"; // can be commented in for debugging
+
+import PlayerPuck from "./3DModels/PlayerPuck.js";
+import AIPuck from './3DModels/AIPuck'
+import Ball from './3DModels/Ball'
+import Stage from "./3DModels/Stage.js"
+import PlayArea from "./3DModels/PlayArea.js"
+
+import TransparentPlane from './3DComponents/TransparentPlane'
+import Text from './3DComponents/Text';
+
+const mqtt = require('mqtt')
+
+
+
 function App() {
+
+  const [playerScore, setPlayerScore] = useState(0);
+  const [aiScore, setAIScore] = useState(0);
+
+  const [playerPosition, setPlayerPosition] = useState(0);
+  const [aiPosition, setAIPosition] = useState(0);
+  const [puckPosition, setPuckPosition] = useState({x:0,y:0});
+
+  const client = mqtt.connect("wss://test.mosquitto.org:8081");
+
+  client.on('connect', function () {
+    client.subscribe('presence', function (err) {
+      if (!err) {
+        client.publish('presence', 'Hello mqtt')
+      }
+    })
+  })
+
+  client.on('message', function (topic, message) {
+    // message is Buffer
+    console.log(message.toString())
+    client.end()
+  })
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Canvas className='App' camera={{position: [0,7,3]}}>
+      {/* Add this line back into enable camera controls */}
+      {/* <OrbitControls></OrbitControls> */}
+
+      <ambientLight intensity={0.3}></ambientLight>
+      <spotLight position={[0,15,0]} angle={0.4} intensity={0.3} />
+      <spotLight position={[0,15,0]} angle={0.3} intensity={0.2} />
+
+      <TransparentPlane position={[0,-1,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
+      <TransparentPlane position={[0,-0.6,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
+
+      {/* player score */}
+      {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
+      <Text position={[2,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} score={playerScore} color={"blue"} />
+      {/* AI score */}
+      <Text position={[-7,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} score={aiScore} color={"red"} />
+      
+      {/* Load our 3d files here */}
+      <Suspense fallback={null} >
+        <PlayArea />
+        <TransparentPlane position={[0,-0.95,0]} size={[9.2,8,1]} color={"blue"} opacity={0.5} />
+        <Stage position={[-11.25, 0, 0]}/> 
+        <Stage position={[0, 0, 0]}/> 
+        <Stage position={[11.25, 0, 0]}/> 
+        <Stage position={[-11.25, 0, -27]}/> 
+        <Stage position={[0, 0, -27]}/> 
+        <Stage position={[11.25, 0, -27]}/> 
+        <Stage position={[-11.25, 0, -13.5]}/> 
+        <Stage position={[0, 0, -13.5]}/> 
+        <Stage position={[11.25, 0, -13.5]}/> 
+
+        <Ball position={[puckPosition.x,0,puckPosition.y]} />
+        <PlayerPuck position={[playerPosition,0,0]} />
+        <AIPuck position={[aiPosition, 0,0]} />
+      
+      </Suspense>
+    </Canvas>
   );
 }
 

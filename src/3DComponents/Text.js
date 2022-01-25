@@ -13,12 +13,12 @@ export default function Text(props) {
     const textOptions = {
         font,
         size: 1,
-        height: .2,
+        height: .1,
     };
 
     return (
         <mesh position={props.position} rotation={props.rotation}>
-           <textGeometry attach='geometry' args={['SCORE: ' + props.score, textOptions]} />
+           <textGeometry attach='geometry' args={[props.text, textOptions]} />
            <meshStandardMaterial attach='material' color={props.color} emissive={props.color} />
          </mesh>
       )

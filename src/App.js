@@ -21,6 +21,7 @@ function App() {
 
   const [playerScore, setPlayerScore] = useState(0);
   const [aiScore, setAIScore] = useState(0);
+  const [level, setLevel] = useState(1)
 
   const [playerPosition, setPlayerPosition] = useState(0);
   const [aiPosition, setAIPosition] = useState(0);
@@ -42,10 +43,18 @@ function App() {
     client.end()
   })
 
+  // we need to update paddle and puck position
+  // topic - example
+  // position/puck - {x: 95, y: 56} - setPuckPosition(data)
+  // position/paddles - {positions: [76, 88]} - setPlayerPosition(data.positions[0]); setAIPosition(data.positions[1])
+  // score - {scores: [2,3]} - setPlayerScore(data.scores[0]); setAIScore(data.scores[1])
+  // game/level - {level: 5} - setLevel(data.level)
+
+
   return (
     <Canvas className='App' camera={{position: [0,7,3]}}>
       {/* Add this line back into enable camera controls */}
-      {/* <OrbitControls></OrbitControls> */}
+      <OrbitControls></OrbitControls>
 
       <ambientLight intensity={0.3}></ambientLight>
       <spotLight position={[0,15,0]} angle={0.4} intensity={0.3} />
@@ -54,11 +63,13 @@ function App() {
       <TransparentPlane position={[0,-1,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
       <TransparentPlane position={[0,-0.6,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
 
+      <Text position={[-2,1,-6]} rotation={[-Math.PI/4, 0, 0]} text={"Level:" + level} color={"white"} />
+
       {/* player score */}
       {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
-      <Text position={[2,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} score={playerScore} color={"blue"} />
+      <Text position={[.5,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} text={"Score:" + playerScore} color={"deepskyblue"} />
       {/* AI score */}
-      <Text position={[-7,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} score={aiScore} color={"red"} />
+      <Text position={[-4.8,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} text={"Score:" + aiScore} color={"red"} />
       
       {/* Load our 3d files here */}
       <Suspense fallback={null} >
@@ -73,6 +84,9 @@ function App() {
         <Stage position={[-11.25, 0, -13.5]}/> 
         <Stage position={[0, 0, -13.5]}/> 
         <Stage position={[11.25, 0, -13.5]}/> 
+        <Stage position={[-11.25, 0, 13.5]}/> 
+        <Stage position={[0, 0, 13.5]}/> 
+        <Stage position={[11.25, 0, 13.5]}/> 
 
         <Ball position={[puckPosition.x,0,puckPosition.y]} />
         <PlayerPuck position={[playerPosition,0,0]} />

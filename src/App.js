@@ -1,6 +1,6 @@
 import './App.css';
 
-import React, {useState, Suspense} from 'react'
+import React, {useState, Suspense, useEffect} from 'react'
 import { Canvas } from "@react-three/fiber";
 import {OrbitControls} from "@react-three/drei"; // can be commented in for debugging
 
@@ -14,7 +14,7 @@ import TransparentPlane from './3DComponents/TransparentPlane'
 import Text from './3DComponents/Text';
 
 const mqtt = require('mqtt')
-
+const client = mqtt.connect("ws://127.0.0.1:9001");
 
 
 function App() {
@@ -27,20 +27,68 @@ function App() {
   const [aiPosition, setAIPosition] = useState(0);
   const [puckPosition, setPuckPosition] = useState({x:0,y:0});
 
-  const client = mqtt.connect("wss://test.mosquitto.org:8081");
+  const scalar = 20;
 
-  client.on('connect', function () {
-    client.subscribe('presence', function (err) {
-      if (!err) {
-        client.publish('presence', 'Hello mqtt')
+  /*
+client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            client.Subscribe(new string[] { "paddle1/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            client.Subscribe(new string[] { "paddle2/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            client.Subscribe(new string[] { "player1/score" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            client.Subscribe(new string[] { "player2/score" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+  */
+  useEffect(() => {
+
+    client.on('connect', function () {
+      client.subscribe('puck/position', function (err) {
+        if (!err) {
+          console.log("connection puck")
+        }
+      })
+
+      // client.subscribe('paddle1/position', function (err) {
+      //   if (!err) {
+      //     console.log("connection pad1")
+      //   }
+      // })
+
+      // client.subscribe('paddle2/position', function (err) {
+      //   if (!err) {
+      //     console.log("connection pad2")
+      //   }
+      // })
+
+      // client.subscribe('player1/score', function (err) {
+      //   if (!err) {
+      //     console.log("connection score")
+      //   }
+      // })
+
+      // client.subscribe('player2/score', function (err) {
+      //   if (!err) {
+      //     console.log("connection score2")
+      //   }
+      // })
+
+      // client.subscribe('game/level', function (err) {
+      //   if (!err) {
+      //     console.log("connection level")
+      //   }
+      // })
+    })
+
+    client.on('message', function (topic, message) {
+      // message is Buffer
+      console.log(topic)
+      console.log(message.toString())
+
+      if (topic === "puck/position") {
+        let pos = {
+          x: message.x / scalar,
+          y: message.y / scalar
+        }
+        setPuckPosition(pos)
       }
     })
-  })
-
-  client.on('message', function (topic, message) {
-    // message is Buffer
-    console.log(message.toString())
-    client.end()
   })
 
   // we need to update paddle and puck position
@@ -49,6 +97,7 @@ function App() {
   // position/paddles - {positions: [76, 88]} - setPlayerPosition(data.positions[0]); setAIPosition(data.positions[1])
   // score - {scores: [2,3]} - setPlayerScore(data.scores[0]); setAIScore(data.scores[1])
   // game/level - {level: 5} - setLevel(data.level)
+
 
 
   return (
@@ -62,15 +111,15 @@ function App() {
 
       <TransparentPlane position={[0,-1,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
       <TransparentPlane position={[0,-0.6,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
+      <group position={[0,0,-1]}>
+        <Text position={[-2,1,-6]} rotation={[-Math.PI/4, 0, 0]} text={"Level:" + level} color={"white"} />
 
-      <Text position={[-2,1,-6]} rotation={[-Math.PI/4, 0, 0]} text={"Level:" + level} color={"white"} />
-
-      {/* player score */}
-      {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
-      <Text position={[.5,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} text={"Score:" + playerScore} color={"deepskyblue"} />
-      {/* AI score */}
-      <Text position={[-4.8,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} text={"Score:" + aiScore} color={"red"} />
-      
+        {/* player score */}
+        {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
+        <Text position={[.5,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} text={"Score:" + playerScore} color={"deepskyblue"} />
+        {/* AI score */}
+        <Text position={[-4.8,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} text={"Score:" + aiScore} color={"red"} />
+      </group>
       {/* Load our 3d files here */}
       <Suspense fallback={null} >
         <PlayArea />
@@ -89,8 +138,8 @@ function App() {
         <Stage position={[11.25, 0, 13.5]}/> 
 
         <Ball position={[puckPosition.x,0,puckPosition.y]} />
-        <PlayerPuck position={[playerPosition,0,0]} />
-        <AIPuck position={[aiPosition, 0,0]} />
+        <PlayerPuck position={[playerPosition,0,0.5]} />
+        <AIPuck position={[aiPosition, 0,-0.5]} />
       
       </Suspense>
     </Canvas>

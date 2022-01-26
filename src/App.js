@@ -27,7 +27,7 @@ function App() {
   const [aiPosition, setAIPosition] = useState(0);
   const [puckPosition, setPuckPosition] = useState({x:0,y:0});
 
-  const scalar = 20;
+  const scalar = 32; // reduction from pixel size of playing field to size of visual
 
   /*
 client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
@@ -45,11 +45,11 @@ client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_
         }
       })
 
-      // client.subscribe('paddle1/position', function (err) {
-      //   if (!err) {
-      //     console.log("connection pad1")
-      //   }
-      // })
+      client.subscribe('paddle1/position', function (err) {
+        if (!err) {
+          console.log("connection pad1")
+        }
+      })
 
       // client.subscribe('paddle2/position', function (err) {
       //   if (!err) {
@@ -81,6 +81,16 @@ client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_
       console.log(topic)
       console.log(message.toString())
 
+      switch (topic) {
+        case "puck/position":
+          console.log("switch puck")
+          break;
+        case "paddle1/position":
+          console.log("puck switch")
+          break;
+        default:
+          break;
+      }
       if (topic === "puck/position") {
         let pos = {
           x: message.x / scalar,
@@ -88,6 +98,12 @@ client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_
         }
         setPuckPosition(pos)
       }
+
+      if ( topic === "paddle1/position" ) {
+        // should be a single value
+      }
+
+
     })
   })
 

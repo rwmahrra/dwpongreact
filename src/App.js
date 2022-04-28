@@ -4,17 +4,13 @@ import React, {useState, Suspense, useEffect} from 'react'
 import { Canvas } from "@react-three/fiber";
 import {OrbitControls} from "@react-three/drei"; // can be commented in for debugging
 
-import PlayerPuck from "./3DModels/PlayerPuck.js";
-import AIPuck from './3DModels/AIPuck'
-import Ball from './3DModels/Ball'
+import PongGame from './PongGame';
+import GameData from './GameData';
 import Stage from "./3DModels/Stage.js"
 import PlayArea from "./3DModels/PlayArea.js"
 
 import TransparentPlane from './3DComponents/TransparentPlane'
-import Text from './3DComponents/Text';
 
-const mqtt = require('mqtt')
-const client = mqtt.connect("ws://127.0.0.1:9001");
 
 
 function App() {
@@ -27,97 +23,13 @@ function App() {
   const [aiPosition, setAIPosition] = useState(0);
   const [puckPosition, setPuckPosition] = useState({x:0,y:0});
 
-  const scalar = 32; // reduction from pixel size of playing field to size of visual
-
-  /*
-client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            client.Subscribe(new string[] { "paddle1/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            client.Subscribe(new string[] { "paddle2/position" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            client.Subscribe(new string[] { "player1/score" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            client.Subscribe(new string[] { "player2/score" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-  */
-  useEffect(() => {
-
-    client.on('connect', function () {
-      client.subscribe('puck/position', function (err) {
-        if (!err) {
-          console.log("connection puck")
-        }
-      })
-
-      client.subscribe('paddle1/position', function (err) {
-        if (!err) {
-          console.log("connection pad1")
-        }
-      })
-
-      // client.subscribe('paddle2/position', function (err) {
-      //   if (!err) {
-      //     console.log("connection pad2")
-      //   }
-      // })
-
-      // client.subscribe('player1/score', function (err) {
-      //   if (!err) {
-      //     console.log("connection score")
-      //   }
-      // })
-
-      // client.subscribe('player2/score', function (err) {
-      //   if (!err) {
-      //     console.log("connection score2")
-      //   }
-      // })
-
-      // client.subscribe('game/level', function (err) {
-      //   if (!err) {
-      //     console.log("connection level")
-      //   }
-      // })
-    })
-
-    client.on('message', function (topic, message) {
-      // message is Buffer
-      console.log(topic)
-      console.log(message.toString())
-
-      switch (topic) {
-        case "puck/position":
-          console.log("switch puck")
-          break;
-        case "paddle1/position":
-          console.log("puck switch")
-          break;
-        default:
-          break;
-      }
-      if (topic === "puck/position") {
-        let pos = {
-          x: message.x / scalar,
-          y: message.y / scalar
-        }
-        setPuckPosition(pos)
-      }
-
-      if ( topic === "paddle1/position" ) {
-        // should be a single value
-      }
 
 
-    })
-  })
-
-  // we need to update paddle and puck position
-  // topic - example
-  // position/puck - {x: 95, y: 56} - setPuckPosition(data)
-  // position/paddles - {positions: [76, 88]} - setPlayerPosition(data.positions[0]); setAIPosition(data.positions[1])
-  // score - {scores: [2,3]} - setPlayerScore(data.scores[0]); setAIScore(data.scores[1])
-  // game/level - {level: 5} - setLevel(data.level)
 
 
 
   return (
-    <Canvas className='App' camera={{position: [0,7,3]}}>
+    <Canvas className='App' mode="concurrent" camera={{position: [0,7,3.5]}}>
       {/* Add this line back into enable camera controls */}
       <OrbitControls></OrbitControls>
 
@@ -127,19 +39,11 @@ client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_
 
       <TransparentPlane position={[0,-1,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
       <TransparentPlane position={[0,-0.6,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
-      <group position={[0,0,-1]}>
-        <Text position={[-2,1,-6]} rotation={[-Math.PI/4, 0, 0]} text={"Level:" + level} color={"white"} />
-
-        {/* player score */}
-        {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
-        <Text position={[.5,.3,-4]} rotation={[-Math.PI/4, -Math.PI/16, 0]} text={"Score:" + playerScore} color={"deepskyblue"} />
-        {/* AI score */}
-        <Text position={[-4.8,1,-3.2]} rotation={[-Math.PI/4, Math.PI/16, 0]} text={"Score:" + aiScore} color={"red"} />
-      </group>
+      <GameData />
       {/* Load our 3d files here */}
       <Suspense fallback={null} >
-        <PlayArea />
-        <TransparentPlane position={[0,-0.95,0]} size={[9.2,8,1]} color={"blue"} opacity={0.5} />
+        <PlayArea position={[0,.6,0]} />
+       <TransparentPlane position={[0,-0.4,0]} size={[9.2,8,1]} color={"blue"} opacity={0.5} />
         <Stage position={[-11.25, 0, 0]}/> 
         <Stage position={[0, 0, 0]}/> 
         <Stage position={[11.25, 0, 0]}/> 
@@ -151,11 +55,9 @@ client.Subscribe(new string[] { "puck/position" }, new byte[] { MqttMsgBase.QOS_
         <Stage position={[11.25, 0, -13.5]}/> 
         <Stage position={[-11.25, 0, 13.5]}/> 
         <Stage position={[0, 0, 13.5]}/> 
-        <Stage position={[11.25, 0, 13.5]}/> 
+        <Stage position={[11.25, 0, 13.5]}/>  
 
-        <Ball position={[puckPosition.x,0,puckPosition.y]} />
-        <PlayerPuck position={[playerPosition,0,0.5]} />
-        <AIPuck position={[aiPosition, 0,-0.5]} />
+        <PongGame />
       
       </Suspense>
     </Canvas>

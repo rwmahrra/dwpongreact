@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import {OrbitControls} from "@react-three/drei"; // can be commented in for debugging
 
 import PongGame from './PongGame';
-import GameData from './GameData';
+// import GameData from './GameData';
 import Stage from "./3DModels/Stage.js"
 import PlayArea from "./3DModels/PlayArea.js"
 
@@ -39,7 +39,7 @@ function App() {
 
       <TransparentPlane position={[0,-1,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
       <TransparentPlane position={[0,-0.6,0]} size={[100,100,100]} color={"black"} opacity={0.3} />
-      <GameData />
+      {/* <GameData /> */}
       {/* Load our 3d files here */}
       <Suspense fallback={null} >
         <PlayArea position={[0,.6,0]} />

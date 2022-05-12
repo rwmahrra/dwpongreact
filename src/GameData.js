@@ -10,7 +10,7 @@ import { Group } from 'three';
 
 
 const mqtt = require('mqtt')
-const client = mqtt.connect("ws://127.0.0.1:9001");
+const client = mqtt.connect(process.env.REACT_APP_URL);
 console.log("Creating UI connections");
 client.on('connect', function () {
  
@@ -42,31 +42,33 @@ client.on('connect', function () {
 
 export default function GameData(props) {
 
+    const [score, setScore] = useState({player1: 0, player2: 0})
     const [player1Score, setPlayer1Score] = useState(0);
     const [player2Score, setPlayer2Score] = useState(0);
     const [level, setLevel] = useState(0)
-    const [currentState, setCurrentState] = useState(2);
+    const [currentState, setCurrentState] = useState(0);
 
     useEffect(() => {
         
         client.on('message', function (topic, message) {
-            // message is Buffer
-            // console.log(topic)
-            // console.log(message.toString())
-        
-    
             const data = JSON.parse(message.toString());
             switch (topic) {
             case "player1/score":
                 let score1 = data.score;
-                if (score1 != player1Score) {
-                    setPlayer1Score(score1)
+                if (score1 != score.player1) {
+                    setScore(prevState => ({
+                        ...prevState,
+                        player1: score1
+                    }))
                 }
                 break;
             case "player2/score":
                 let score2 = data.score;
-                if (score2 != player2Score) {
-                    setPlayer2Score(score2)
+                if (score2 != score.player2) {
+                    setScore(prevState => ({
+                        ...prevState,
+                        player2: score2
+                    }))
                 }
                 break;
             case "game/level":
@@ -79,6 +81,8 @@ export default function GameData(props) {
                 let newState = data.state;
                 if(newState != currentState) {
                     setCurrentState(newState)
+                    if(newState < 2)
+                    setScore({player1: 0, player2: 0})
                 }
             }
         })
@@ -100,13 +104,18 @@ export default function GameData(props) {
                     </group>
                 break;
             case 2:
-                return <Text position={[-2,1,-3]} rotation={[-Math.PI/4, 0, 0]} text={"Level:" + level} color={"white"} />
+                return <Text position={[-2,1,-3]} rotation={[-Math.PI/4, 0, 0]} text={"Level: " + level} color={"white"} />
+                break;
+            case 3: 
+                return <group scale={[.7,.7,.7]}>
+                    <Text position={[-3.3,2,2]} rotation={[-Math.PI/4, 0, 0]} text={"Thank You"} color={"white"} />
+                    <Text position={[-3.5,1.5,4]} rotation={[-Math.PI/3, 0, 0]} text={"For Playing!"} color={"white"} />
+                    <TransparentPlane position={[0,1,0]} size={[100,100,100]} color={"black"} opacity={0.4} />
+                    </group>
                 break;
         }
     }
 
-    
-  
 
     return (
         <group position={[0,0,-1]}>
@@ -119,9 +128,9 @@ export default function GameData(props) {
 
             {/* player score */}
             {/* These are sized and rotated by best estimate, if we continue with this script, we should use lookat() or another method to create a billboard object */}
-            <Text position={[-0.4,-0.4,3.5]} rotation={[-Math.PI/2, 0, 0]} text={"" + player1Score} color={"deepskyblue"} />
+            <Text position={[-0.4,-0.4,3.5]} rotation={[-Math.PI/2, 0, 0]} text={"" + score.player1} color={"deepskyblue"} />
             {/* AI score */}
-            <Text position={[-0.4,-0.4,-0.5]} rotation={[-Math.PI/2, 0, 0]} text={"" + player2Score} color={"red"} />
+            <Text position={[-0.4,-0.4,-0.5]} rotation={[-Math.PI/2, 0, 0]} text={"" + score.player2} color={"red"} />
         </group>
     )
 }

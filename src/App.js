@@ -14,26 +14,12 @@ import PlayArea from "./3DModels/PlayArea.js"
 import TransparentPlane from './3DComponents/TransparentPlane'
 
 
-
 function App() {
-
-  const [playerScore, setPlayerScore] = useState(0);
-  const [aiScore, setAIScore] = useState(0);
-  const [level, setLevel] = useState(1)
-
-  const [playerPosition, setPlayerPosition] = useState(0);
-  const [aiPosition, setAIPosition] = useState(0);
-  const [puckPosition, setPuckPosition] = useState({x:0,y:0});
-
-
-
-
-
 
   return (
     <Canvas className='App' mode="concurrent" camera={{position: [0,5.5,3.2]}}>
       {/* Add this line back into enable camera controls */}
-      <OrbitControls></OrbitControls>
+      {/* <OrbitControls></OrbitControls> */}
 
       <ambientLight intensity={0.3}></ambientLight>
       <spotLight position={[0,15,0]} angle={0.4} intensity={0.3} />

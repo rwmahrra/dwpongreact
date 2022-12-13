@@ -3,3 +3,5 @@
 This piece incorporates the game viewer and some interface cues for the player.
 
 to install run 'npm install' then 'npm start'
+
+![Application Screenshot](PongScreenshotField.png?raw=true "Game Field")
